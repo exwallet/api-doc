@@ -23,36 +23,38 @@
 ``` 
 	 0   // 已创建
 	 1   // 等待提交
-	 2   // 提交成功 (提交钱包节点成功)
+	 2   // 提交成功 (提交钱包节点成功,等待广播)
 	 3   // 提交失败 (提交钱包节点失败)
 	 301 // 提交失败待确认
-	 4   // 广播成功 
-	 5   // 等待确认 (等待区块确认高度)
+	 4   // 广播成功,等待上链 
+	 5   // 上链成功,等待确认 (等待区块确认高度)
 	 10  // 已确认  (入帐标志)
-	 20  // 已确认2 (针对充值的区块高度达到确认数1基础上, 再达确认数2, 如果省略10直接推送20,直接入帐)
 	 -1  // 已回滚
     
 ```
 <b>充值/提币帐单通知字段</b>
 ``` 
-symbol
-contractId
-contractAddress
-status
-fromAddress
-toAddress
-amount
-isMemo
-memo
-usid
-txid
-fee
-confirm
-blockHash
-blockHeight
-fork
+symbol           // 主链        
+contractId       // 合约ID          
+contractAddress  // 合约地址                  
+status           // 状态          
+fromAddress      //               
+toAddress        //               
+amount           // 金额          
+isMemo           //           
+memo             //           
+usid             // 订单号          
+txid             // 交易哈希           
+fee              // 手续费      
+confirm          // 确认数          
+blockHash        // 区块哈希              
+blockHeight      // 区块高度
+fork             // 是否分叉 0否1是          
 
 ```
+<b>入帐条件, 同时满足</b>
+1. status = 10
+2. fork = 0 
 
 <b>通知充值/提币确认流程</b>
   - status = 2 更新txid,可自行查询链上状态. (txid如果上链失败会重新广播,status=4时需要再更新txid)
@@ -60,12 +62,12 @@ fork
   - status = 4  更新txid, blockHash, blockHeight, confirm
   - status = 5, confirm=n ,  更新confirm
   - status = 5, confirm=n+?  更新confirm, 此过程不断推送, 确认数不断增加, 交易所可更新确认数
-  - status = 10  已达入帐高度, 确认入帐.
-  - status = 20  已达可提币的高度 (大于入帐高度) (预留,暂时不推) 
+  - status = 10  已达入帐高度, 符合入帐条件1.
   
-  <b>*通知状态可能略过4, 5状态,通知10,可直接入帐</b>
+  <b>*status通知状态可能略过4, 5状态,通知10,可直接入帐</b>
   <b>*如果在接收到状态10前通知-1, 这笔帐单忽略入帐</b>
   <b>*如果接收到状态-1后, 又接收10, 正常入帐</b>   
+  <b>*接收到fork=1时, 这笔帐单忽略入帐</b> 
 
 
 
